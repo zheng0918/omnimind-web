@@ -1,0 +1,1 @@
+import{n,A as m}from"./index-CsL5hHlq.js";function d(t){return n({method:"GET",url:m.kb.documents(t)})}function c(t,o,u){const e=new FormData;return e.append("file",o),n({method:"POST",url:m.kb.documents(t),data:e,headers:{"Content-Type":"multipart/form-data"},onUploadProgress:a=>{a.total&&(u==null||u(Math.round(a.loaded/a.total*100)))}})}export{d as l,c as u};
