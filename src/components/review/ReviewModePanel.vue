@@ -1,23 +1,21 @@
 <template>
-  <PageHeader compact title="审查工作台" description="已审 85/120 条 · 预计剩余 4 分 12 秒">
-    <template #actions>
-      <button class="btn" type="button" @click="reviewStore.startPolling">
-        <RefreshCw />
-        增量刷新
-      </button>
-      <button class="btn primary" type="button">
-        <Download />
-        导出报告
-      </button>
-    </template>
-  </PageHeader>
-
+  <!--
+    审查模式三栏面板：左原文 PDF / 中风险列表(按 HIGH/MEDIUM/PASS) / 右详情+处置。
+    数据来自 review store（POC 下由 seed 提供，联调时切换为 /review/tasks/* 接口）。
+  -->
   <div class="workspace-progress">
     <span>审查进度</span>
     <div class="progress-track">
       <i :style="{ width: progressPercent + '%' }" />
     </div>
     <b>{{ progressPercent }}%</b>
+    <span class="progress-meta">已审 {{ reviewStore.task?.doneItems ?? 0 }}/{{ reviewStore.task?.totalItems ?? 0 }} 条</span>
+  </div>
+
+  <!-- 来自编写模式的一键送审落稿提示（REQ-LINK） -->
+  <div v-if="reviewStore.fromWriteDraft" class="banner banner-link">
+    <Send />
+    <span>本次待审文档<b>来自编写模式初稿</b>（{{ reviewStore.fromWriteDraft }}），请选择审查清单后开始复核。</span>
   </div>
 
   <div class="review-workspace">
@@ -40,10 +38,9 @@
 </template>
 
 <script setup lang="ts">
-import { Download, RefreshCw } from 'lucide-vue-next'
+import { Send } from 'lucide-vue-next'
 import { computed, onBeforeUnmount } from 'vue'
 
-import PageHeader from '@/components/common/PageHeader.vue'
 import PdfViewer from '@/components/pdf/PdfViewer.vue'
 import RiskDispositionPanel from '@/components/review/RiskDispositionPanel.vue'
 import RiskList from '@/components/review/RiskList.vue'
@@ -52,6 +49,7 @@ import type { RiskDisposition } from '@/types/api'
 
 const reviewStore = useReviewStore()
 
+// 审查清单覆盖率 = 已比对条目 / 总条目。
 const progressPercent = computed(() => {
   if (!reviewStore.task?.totalItems) return 0
   return Math.round((reviewStore.task.doneItems / reviewStore.task.totalItems) * 100)
@@ -66,6 +64,7 @@ function handleDispose(
   void reviewStore.dispose(reviewStore.activeRisk.riskId, disposition, ignoreReason, userEditedText)
 }
 
+// 组件卸载（如切到其它一级菜单）时停止增量轮询，避免后台空转。
 onBeforeUnmount(() => {
   reviewStore.stopPolling()
 })

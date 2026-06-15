@@ -42,28 +42,11 @@ export const routes: RouteRecordRaw[] = [
     meta: { title: '知识库详情', requiresAuth: true, roles: ['admin', 'editor', 'viewer'] } satisfies RouteMetaConfig,
   },
   {
+    // 审查 + 编写双 Tab 合一的工作台（对应原型 ir 视图）。
     path: ROUTE_PATHS.review,
     name: 'review',
-    component: () => import('@/views/review/list.vue'),
+    component: () => import('@/views/review/index.vue'),
     meta: { title: '智能审查', requiresAuth: true, roles: ['admin', 'editor'] } satisfies RouteMetaConfig,
-  },
-  {
-    path: ROUTE_PATHS.reviewWorkspace,
-    name: 'review-workspace',
-    component: () => import('@/views/review/workspace.vue'),
-    meta: { title: '审查工作台', requiresAuth: true, roles: ['admin', 'editor'] } satisfies RouteMetaConfig,
-  },
-  {
-    path: ROUTE_PATHS.write,
-    name: 'write',
-    component: () => import('@/views/write/list.vue'),
-    meta: { title: '智能编写', requiresAuth: true, roles: ['admin', 'editor'] } satisfies RouteMetaConfig,
-  },
-  {
-    path: ROUTE_PATHS.writeWorkspace,
-    name: 'write-workspace',
-    component: () => import('@/views/write/workspace.vue'),
-    meta: { title: '编写工作台', requiresAuth: true, roles: ['admin', 'editor'] } satisfies RouteMetaConfig,
   },
   {
     path: ROUTE_PATHS.sys,

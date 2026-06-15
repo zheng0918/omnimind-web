@@ -44,9 +44,19 @@
           <h2>{{ kbStore.currentKb?.name }}</h2>
           <p>{{ kbStore.currentKb?.description }}</p>
         </div>
-        <div class="km-stats">
-          <span><b>{{ kbStore.documents.length }}</b>文档</span>
-          <span><b>{{ kbStore.parsedCount }}</b>已解析</span>
+        <div class="km-headline-aside">
+          <div class="km-stats">
+            <span><b>{{ kbStore.documents.length }}</b>文档</span>
+            <span><b>{{ kbStore.parsedCount }}</b>已解析</span>
+          </div>
+          <RouterLink
+            v-if="kbStore.currentKbId"
+            class="btn sm"
+            :to="{ name: 'kb-detail', params: { kbId: kbStore.currentKbId } }"
+          >
+            <ArrowUpRight />
+            成员与详情
+          </RouterLink>
         </div>
       </div>
 
@@ -105,8 +115,9 @@
 </template>
 
 <script setup lang="ts">
-import { Database, Plus, Search, Upload } from 'lucide-vue-next'
+import { ArrowUpRight, Database, Plus, Search, Upload } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
+import { RouterLink } from 'vue-router'
 
 import PageHeader from '@/components/common/PageHeader.vue'
 import FileUploader from '@/components/upload/FileUploader.vue'

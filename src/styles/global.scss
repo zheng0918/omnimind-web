@@ -403,6 +403,28 @@ a {
   width: 100%;
 }
 
+.btn.sm {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.btn.sm svg {
+  width: 13px;
+  height: 13px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.km-headline-aside {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .btn svg,
 .micro-btn svg {
   width: 14px;
@@ -2649,5 +2671,102 @@ a {
   .review-workspace,
   .write-grid {
     min-width: 1120px;
+  }
+}
+
+/* 智能审查工作台：风险免责横幅 + 进度元信息（ReviewModePanel / WriteModePanel 共用） */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--warning, #d97706) 10%, transparent);
+  color: var(--text-2, #4b5563);
+  font-size: 13px;
+}
+
+.banner svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--warning, #d97706);
+}
+
+.banner.banner-link {
+  background: color-mix(in srgb, var(--primary, #2563eb) 10%, transparent);
+}
+
+.banner.banner-link svg {
+  color: var(--primary, #2563eb);
+}
+
+.workspace-progress .progress-meta {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-3, #9ca3af);
+}
+
+/* 知识库详情：左库信息+成员 / 右文档列表+上传 */
+.kb-detail {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.kb-detail .kb-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 4px 0 16px;
+}
+
+.kb-detail .kb-info-list .row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-2, #4b5563);
+}
+
+.kb-detail .kb-info-list .row b {
+  color: var(--text-1, #111827);
+  font-weight: 600;
+}
+
+.kb-detail .member-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px dashed var(--border, #e5e7eb);
+  font-size: 13px;
+}
+
+.kb-detail .member-row .avatar-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--primary, #2563eb);
+  color: #fff;
+  font-size: 12px;
+}
+
+.kb-detail .member-row .perm {
+  margin-left: auto;
+  font-size: 11.5px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--bg-2, #f3f4f6);
+  color: var(--text-2, #4b5563);
+}
+
+@media (max-width: 1100px) {
+  .kb-detail {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

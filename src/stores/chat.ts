@@ -7,6 +7,12 @@ import type { ChatMessage, ChatMode, ChatSession, Citation } from '@/types/api'
 import { seedMessages, seedSessions } from './pocSeed'
 import { useUserStore } from './user'
 
+/**
+ * 问答 store（REQ-CHAT）：多会话、消息流与流式态。
+ * 回答经 SSE 流式拼接（token 增量 / citation 引用 / done 收尾），引用写入右侧引用区。
+ */
+
+// 模块级 SSE 句柄：新提问前先关闭上一条流，避免并发串流。
 let activeStream: SseHandle | null = null
 
 interface ChatState {

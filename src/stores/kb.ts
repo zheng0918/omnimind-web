@@ -6,6 +6,10 @@ import type { DocumentItem, KnowledgeBase, ParseStatusResult } from '@/types/api
 
 import { seedDocuments, seedKbs } from './pocSeed'
 
+/**
+ * 知识库 store（REQ-KB）：库列表、当前库、文档列表与解析进度。
+ * 接口失败时回退 seed，保证 POC 演示页面不空白。
+ */
 interface KbState {
   currentKbId: string
   kbList: KnowledgeBase[]

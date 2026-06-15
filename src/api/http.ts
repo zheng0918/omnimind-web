@@ -6,6 +6,14 @@ import { useUserStore } from '@/stores/user'
 import type { ApiError, ApiResponse } from '@/types/api'
 import { createTraceId } from '@/utils/trace'
 
+/**
+ * axios 实例与统一请求封装（interfaceContract.md §0.2 / frontendRequirements.md 全局约定）。
+ * 职责：
+ * - 请求拦截注入 X-Trace-Id / X-Api-Version / Authorization；
+ * - 统一解包 {code,message,data,traceId}：code!==0 抛业务错误并 toast；
+ * - HTTP 401 跳登录、403 提示无权限、2003 提示角色无操作权限。
+ */
+
 export const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 30000,

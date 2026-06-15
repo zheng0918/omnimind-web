@@ -2,6 +2,13 @@ import { onUnmounted, ref } from 'vue'
 
 import { createSSE, type SseEventName, type SseHandle } from '@/api/sse'
 
+/**
+ * SSE 组合式封装（frontendRequirements.md §四）：在 createSSE 之上提供响应式连接状态、
+ * 首 Token 计时（性能可观测，目标 ≤1.5s）与组件卸载自动关闭。
+ * 适用于 AI 问答、编写大纲/章节等实时增量文本流。
+ *
+ * @param opts.onFirstToken 首个 token 到达时回调，入参为自 open 起的毫秒数。
+ */
 export function useSSE<E extends SseEventName>(opts: {
   url: () => string
   token?: () => string

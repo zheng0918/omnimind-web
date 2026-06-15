@@ -5,6 +5,10 @@ import type { WorkbenchSummary } from '@/types/api'
 
 import { seedWorkbench } from './pocSeed'
 
+/**
+ * 工作台 store（REQ-HOME）：一次性拉取 /workbench/summary 渲染五段式首页
+ * （快讯 + KPI + 趋势 + 三栏 + Agent 入口）。失败时回退 seed 兜底展示。
+ */
 interface WorkbenchState {
   summary: WorkbenchSummary
   loading: boolean

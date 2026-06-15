@@ -27,7 +27,7 @@
           <MessagesSquare />
           发起问答
         </RouterLink>
-        <RouterLink class="pill" :to="ROUTE_PATHS.write">
+        <RouterLink class="pill" :to="REVIEW_WRITE_LOCATION">
           <FilePenLine />
           开始编写
         </RouterLink>
@@ -50,7 +50,7 @@
         <span class="num">{{ summary.kpis.kbUsagePercent }}<span class="unit">%</span></span>
         <span class="delta">已解析 {{ summary.kbHealth.parsedDocs }} 份</span>
       </RouterLink>
-      <RouterLink class="home-kpi kpi-alert" :to="ROUTE_PATHS.reviewWorkspace">
+      <RouterLink class="home-kpi kpi-alert" :to="ROUTE_PATHS.review">
         <span class="label"><Clock3 /> 待办任务</span>
         <span class="num">{{ summary.kpis.pendingTasks }}<span class="unit">项</span></span>
         <span class="delta"><span class="up">3</span> 项需今日处理</span>
@@ -141,7 +141,7 @@
             v-for="task in summary.recentTasks"
             :key="task.taskId"
             class="home-list-item"
-            :to="task.type === 'WRITE' ? ROUTE_PATHS.writeWorkspace : ROUTE_PATHS.reviewWorkspace"
+            :to="task.type === 'WRITE' ? REVIEW_WRITE_LOCATION : ROUTE_PATHS.review"
           >
             <span class="ico blue"><FileText /></span>
             <span class="body">
@@ -164,7 +164,7 @@
         <span class="qc-title">智能审查 <ArrowRight /></span>
         <span class="qc-desc">上传招标文件与待审文档，按清单增量生成三色风险报告。</span>
       </RouterLink>
-      <RouterLink class="quick-card qc-aw" :to="ROUTE_PATHS.write">
+      <RouterLink class="quick-card qc-aw" :to="REVIEW_WRITE_LOCATION">
         <span class="qc-ico"><FilePenLine /></span>
         <span class="qc-title">智能编写 <ArrowRight /></span>
         <span class="qc-desc">抽取评分点、匹配历史素材，生成大纲与章节初稿。</span>
@@ -194,7 +194,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import PageHeader from '@/components/common/PageHeader.vue'
-import { ROUTE_PATHS } from '@/constants/routes'
+import { REVIEW_WRITE_LOCATION, ROUTE_PATHS } from '@/constants/routes'
 import { useUserStore } from '@/stores/user'
 import { useWorkbenchStore } from '@/stores/workbench'
 

@@ -1,3 +1,7 @@
+/**
+ * POC 种子数据：第一期在后端联调前用于驱动各页面展示，字段严格遵循 interfaceContract.md。
+ * 各 store 在接口不可用时回退到这里，保证演示态页面不空白。联调完成后可整体移除。
+ */
 import type {
   ChatMessage,
   ChatSession,

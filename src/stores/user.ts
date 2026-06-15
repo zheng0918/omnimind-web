@@ -5,6 +5,11 @@ import type { LoginParams, Role, Scope, UserProfile } from '@/types/api'
 
 import { seedUser } from './pocSeed'
 
+/**
+ * 用户态 store（REQ-AUTH）：登录态、角色、视角与权限。
+ * token 与 profile 持久化到 localStorage 以支持刷新保活；登出时清除。
+ * 角色用于路由守卫与写操作按钮置灰（viewer 只读）。
+ */
 const TOKEN_KEY = 'omnimind_token'
 const PROFILE_KEY = 'omnimind_profile'
 
