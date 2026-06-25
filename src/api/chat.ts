@@ -1,5 +1,5 @@
 import { API_PATHS } from '@/constants/api'
-import type { ChatMessage, ChatMode, ChatSession } from '@/types/api'
+import type { ChatMessage, ChatMode, ChatSession, PageResult } from '@/types/api'
 
 import { request } from './http'
 import { createSSE, type SseHandle, type SseEventPayload } from './sse'
@@ -17,12 +17,14 @@ export function createSession(params: CreateSessionParams): Promise<{ sessionId:
   })
 }
 
-export function listSessions(q?: string): Promise<ChatSession[]> {
-  return request<ChatSession[]>({
+// 后端返回 PageResult{list,...}，解包出会话数组。
+export async function listSessions(q?: string): Promise<ChatSession[]> {
+  const page = await request<PageResult<ChatSession>>({
     method: 'GET',
     url: API_PATHS.chat.sessions,
     params: { q },
   })
+  return page.list
 }
 
 export function getSession(sessionId: string): Promise<{ session: ChatSession; messages: ChatMessage[] }> {

@@ -1,5 +1,5 @@
 import { API_PATHS } from '@/constants/api'
-import type { KbMember, KnowledgeBase } from '@/types/api'
+import type { KbMember, KnowledgeBase, PageResult } from '@/types/api'
 
 import { request } from './http'
 
@@ -9,11 +9,13 @@ export interface SaveKbParams {
   members: KbMember[]
 }
 
-export function listKb(): Promise<KnowledgeBase[]> {
-  return request<KnowledgeBase[]>({
+// 后端列表统一返回 PageResult{list,total,...}，这里解包出数组供 store 直接消费。
+export async function listKb(): Promise<KnowledgeBase[]> {
+  const page = await request<PageResult<KnowledgeBase>>({
     method: 'GET',
     url: API_PATHS.kb.list,
   })
+  return page.list
 }
 
 export function getKb(kbId: string): Promise<KnowledgeBase> {

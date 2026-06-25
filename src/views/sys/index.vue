@@ -13,7 +13,7 @@
   </PageHeader>
 
   <div class="sys-layout">
-    <section class="panel">
+    <section v-show="activeTab === 'users'" class="panel">
       <div class="panel-head">
         <h3>用户管理</h3>
         <span class="meta">REQ-SYS-01</span>
@@ -30,7 +30,16 @@
         <tbody>
           <tr v-for="user in users" :key="user.userId">
             <td>{{ user.realName }} · {{ user.username }}</td>
-            <td>{{ user.role }}</td>
+            <td>
+              <select
+                :value="user.role"
+                @change="onAssignRole(user, ($event.target as HTMLSelectElement).value as Role)"
+              >
+                <option v-for="r in ROLE_OPTIONS" :key="r" :value="r">
+                  {{ r }}
+                </option>
+              </select>
+            </td>
             <td><span class="status-tag parsed">{{ user.status }}</span></td>
             <td>{{ user.updatedAt }}</td>
           </tr>
@@ -38,7 +47,7 @@
       </table>
     </section>
 
-    <section class="panel">
+    <section v-show="activeTab === 'roles'" class="panel">
       <div class="panel-head">
         <h3>角色与权限</h3>
         <span class="meta">只读内置角色</span>
@@ -52,7 +61,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section v-show="activeTab === 'dicts'" class="panel">
       <div class="panel-head">
         <h3>字典配置</h3>
         <span class="meta">项目类型 / 客户类型</span>
@@ -65,7 +74,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section v-show="activeTab === 'logs'" class="panel">
       <div class="panel-head">
         <h3>操作日志</h3>
         <span class="meta">trace_id</span>
@@ -81,31 +90,62 @@
 </template>
 
 <script setup lang="ts">
+import { ElMessage } from 'element-plus'
 import { Download, UserPlus } from 'lucide-vue-next'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 
+import { assignRole, listAuditLogs, listDicts, listRoles, listUsers } from '@/api/sys'
 import PageHeader from '@/components/common/PageHeader.vue'
-import type { AuditLog, SysDictItem, SysRole, SysUser } from '@/types/api'
+import type { AuditLog, Role, SysDictItem, SysRole, SysUser } from '@/types/api'
 
-const users: SysUser[] = [
-  { userId: 'u-001', username: 'zhangwei', realName: '张华', role: 'admin', status: 'ENABLED', updatedAt: '2026-06-14' },
-  { userId: 'u-002', username: 'limin', realName: '李敏', role: 'editor', status: 'ENABLED', updatedAt: '2026-06-13' },
-  { userId: 'u-003', username: 'wangyu', realName: '王宇', role: 'viewer', status: 'DISABLED', updatedAt: '2026-06-12' },
-]
+// 全部由 onMounted 接口拉取；失败由 http 拦截统一提示，保持空态，不回退假数据。
+const users = ref<SysUser[]>([])
+const roles = ref<SysRole[]>([])
+const dicts = ref<SysDictItem[]>([])
+const logs = ref<AuditLog[]>([])
 
-const roles: SysRole[] = [
-  { role: 'admin', name: '管理员', permissions: ['全模块读写', '系统管理'] },
-  { role: 'editor', name: '编辑者', permissions: ['问答', '审查', '编写', '知识库写'] },
-  { role: 'viewer', name: '只读用户', permissions: ['问答只读', '知识库读'] },
-]
+const ROLE_OPTIONS: Role[] = ['admin', 'editor', 'viewer']
 
-const dicts: SysDictItem[] = [
-  { dictId: 'd-1', type: 'projectType', label: '学校工程', value: 'school', enabled: true },
-  { dictId: 'd-2', type: 'projectType', label: '市政工程', value: 'municipal', enabled: true },
-  { dictId: 'd-3', type: 'clientType', label: '政府客户', value: 'gov', enabled: true },
-]
+// 当前子模块由侧边栏「系统管理」子菜单经 ?tab= 驱动，单次只展示对应面板。
+type SysTab = 'users' | 'roles' | 'dicts' | 'logs'
+const SYS_TABS: SysTab[] = ['users', 'roles', 'dicts', 'logs']
+const route = useRoute()
+const activeTab = computed<SysTab>(() => {
+  const tab = route.query.tab
+  return SYS_TABS.includes(tab as SysTab) ? (tab as SysTab) : 'users'
+})
 
-const logs: AuditLog[] = [
-  { logId: 'l-1', userId: 'u-001', module: 'KB', action: 'UPLOAD', traceId: 'tr-1024', createdAt: '2026-06-14' },
-  { logId: 'l-2', userId: 'u-002', module: 'REVIEW', action: 'DISPOSE', traceId: 'tr-1025', createdAt: '2026-06-14' },
-]
+async function onAssignRole(user: SysUser, role: Role): Promise<void> {
+  const previous = user.role
+  if (role === previous) return
+  user.role = role
+  try {
+    await assignRole(user.userId, role)
+    ElMessage.success('角色已更新')
+  } catch {
+    user.role = previous
+    ElMessage.error('角色更新失败，请稍后重试')
+  }
+}
+
+onMounted(async () => {
+  const [u, r, d, l] = await Promise.allSettled([
+    listUsers(),
+    listRoles(),
+    listDicts(),
+    listAuditLogs({ pageNum: 1, pageSize: 20 }),
+  ])
+  if (u.status === 'fulfilled') users.value = u.value
+  if (r.status === 'fulfilled') roles.value = r.value
+  if (d.status === 'fulfilled') dicts.value = d.value
+  if (l.status === 'fulfilled') logs.value = l.value.list
+})
 </script>
+
+<style scoped lang="scss">
+/* 子菜单切换后单次仅展示一个面板，布局改为单列通栏。 */
+.sys-layout {
+  grid-template-columns: 1fr;
+}
+</style>

@@ -17,6 +17,7 @@ export const API_PATHS = {
     remove: (docId: string) => `${API_PREFIX}/documents/${docId}`,
     parseStatus: (docId: string) => `${API_PREFIX}/documents/${docId}/parse-status`,
     reparse: (docId: string) => `${API_PREFIX}/documents/${docId}/reparse`,
+    download: (docId: string) => `${API_PREFIX}/documents/${docId}/download`,
   },
   chat: {
     sessions: `${API_PREFIX}/chat/sessions`,

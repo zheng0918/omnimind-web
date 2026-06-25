@@ -81,11 +81,26 @@ async function upload(file: File): Promise<void> {
   if (!props.kbId || !validate(file)) return
   selectedName.value = file.name
   percent.value = 1
-  const result = await uploadDocument(props.kbId, file, (value) => {
-    percent.value = value
-  })
-  percent.value = 100
-  emit('uploaded', result)
+  try {
+    const result = await uploadDocument(props.kbId, file, (value) => {
+      percent.value = value
+    })
+    percent.value = 100
+    // 仅在拿到真实 documentId 后才视为成功并回填，避免后端返回异常结构时
+    // 上传区显示「已上传」、但「开始审查/编写」仍提示「请先上传」的撕裂状态。
+    if (!result?.documentId) {
+      throw new Error('上传返回缺少 documentId')
+    }
+    emit('uploaded', result)
+  } catch (error) {
+    // 上传失败（如同名文件被后端按业务错误拒绝）时复位上传区，让状态如实反映「未上传」。
+    selectedName.value = ''
+    percent.value = 0
+    // http 拦截已对后端业务错误统一 toast；此处仅兜底无 message 的本地异常。
+    if (error instanceof Error && error.message === '上传返回缺少 documentId') {
+      ElMessage.error('上传失败：服务返回异常，请重试')
+    }
+  }
 }
 
 function handleChange(event: Event): void {
@@ -100,4 +115,7 @@ function handleDrop(event: DragEvent): void {
   const file = event.dataTransfer?.files[0]
   if (file) void upload(file)
 }
+
+// 供父组件（如知识库管理页顶部「上传文档」按钮）外部唤起文件选择框。
+defineExpose({ open: () => fileInput.value?.click() })
 </script>

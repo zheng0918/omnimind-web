@@ -1,11 +1,11 @@
 <template>
   <PageHeader title="知识库管理" description="库 CRUD、文档上传、解析状态与成员权限。">
     <template #actions>
-      <button class="btn" type="button">
+      <button class="btn" type="button" @click="onCreateKb">
         <Plus />
         新建知识库
       </button>
-      <button class="btn primary" type="button">
+      <button class="btn primary" type="button" @click="onUploadDoc">
         <Upload />
         上传文档
       </button>
@@ -62,6 +62,7 @@
 
       <div class="km-uploader-row">
         <FileUploader
+          ref="uploaderRef"
           :kb-id="kbStore.currentKbId"
           label="知识库文档"
           :disabled="userStore.role === 'viewer'"
@@ -96,7 +97,7 @@
           <tr v-for="doc in filteredDocuments" :key="doc.documentId">
             <td>
               <span class="doc-name">
-                <span class="doc-icon">{{ iconText(doc.name) }}</span>
+                <span class="doc-icon" :class="extClass(doc.name)">{{ iconText(doc.name) }}</span>
                 <span>
                   <b>{{ doc.name }}</b>
                   <small>{{ doc.documentId }}</small>
@@ -115,6 +116,7 @@
 </template>
 
 <script setup lang="ts">
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowUpRight, Database, Plus, Search, Upload } from 'lucide-vue-next'
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
@@ -130,6 +132,7 @@ const kbStore = useKbStore()
 const userStore = useUserStore()
 const keyword = ref('')
 const docKeyword = ref('')
+const uploaderRef = ref<InstanceType<typeof FileUploader>>()
 
 const filteredKbs = computed(() => {
   const q = keyword.value.trim().toLowerCase()
@@ -147,6 +150,40 @@ function handleSelectKb(kbId: string): void {
   void kbStore.fetchDocuments(kbId)
 }
 
+// 新建知识库：弹窗收名称 → 调接口创建 → store 自动刷新并切到新库。
+async function onCreateKb(): Promise<void> {
+  if (userStore.role === 'viewer') {
+    ElMessage.warning('当前角色无操作权限，请联系管理员')
+    return
+  }
+  try {
+    const { value } = await ElMessageBox.prompt('请输入知识库名称', '新建知识库', {
+      confirmButtonText: '创建',
+      cancelButtonText: '取消',
+      inputPattern: /\S+/,
+      inputErrorMessage: '名称不能为空',
+    })
+    const ok = await kbStore.createKb({ name: value.trim(), description: '', members: [] })
+    if (ok) ElMessage.success('知识库已创建')
+    else ElMessage.error('创建失败，请稍后重试')
+  } catch {
+    // 用户取消，无需处理。
+  }
+}
+
+// 上传文档：复用主区 FileUploader，唤起其文件选择框（需先选中某个库）。
+function onUploadDoc(): void {
+  if (userStore.role === 'viewer') {
+    ElMessage.warning('当前角色无操作权限，请联系管理员')
+    return
+  }
+  if (!kbStore.currentKbId) {
+    ElMessage.warning('请先选择或新建知识库')
+    return
+  }
+  uploaderRef.value?.open()
+}
+
 function handleUploaded(result: UploadDocumentResult): void {
   kbStore.documents.unshift({
     documentId: result.documentId,
@@ -160,7 +197,12 @@ function handleUploaded(result: UploadDocumentResult): void {
 
 function iconText(name: string): string {
   const ext = name.split('.').pop()?.toUpperCase() ?? 'DOC'
-  return ext.slice(0, 3)
+  return ext.slice(0, 4)
+}
+
+// 文件扩展名归一为类型类名，驱动 doc-icon 的类型配色。
+function extClass(name: string): string {
+  return (name.split('.').pop() ?? '').toLowerCase()
 }
 
 onMounted(() => {

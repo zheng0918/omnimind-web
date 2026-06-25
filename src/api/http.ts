@@ -31,6 +31,23 @@ http.interceptors.request.use((config) => {
   return config
 })
 
+// 契约 §四：业务错误码差异化提示。未列入的 code 回退后端 message。
+const BIZ_ERROR_MESSAGES: Record<number, string> = {
+  2001: '用户名或密码错误',
+  2002: '账号已停用，请联系管理员',
+  2003: '当前角色无操作权限，请联系管理员',
+  3004: '该文件已存在，已为你定位到原文档',
+  4002: 'AI 响应超时，请稍后重试',
+  4003: '请至少选择一个知识库',
+  5002: '待审文档内容过少，无法有效审查',
+  6001: '招标文件尚未解析完成，请稍候',
+  6002: '初稿完成度不足 80%，暂不可送审',
+}
+
+function bizMessage(code: number, fallback: string): string {
+  return BIZ_ERROR_MESSAGES[code] ?? fallback
+}
+
 function toApiError(error: AxiosError<ApiResponse<unknown>>): ApiError {
   const response = error.response
   const payload = response?.data
@@ -61,11 +78,7 @@ export async function request<T>(config: AxiosRequestConfig): Promise<T> {
         traceId: payload.traceId,
       }
 
-      if (payload.code === 2003) {
-        ElMessage.error('当前角色无操作权限，请联系管理员')
-      } else {
-        ElMessage.error(payload.message)
-      }
+      ElMessage.error(bizMessage(payload.code, payload.message))
 
       return Promise.reject(apiError)
     }

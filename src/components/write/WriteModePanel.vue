@@ -1,7 +1,7 @@
 <template>
   <!--
     编写模式三栏面板：左大纲树（章节状态）/ 中 TipTap 编辑器（流式正文）/ 右评分点对照。
-    数据来自 write store（POC 下由 seed 提供，联调时切换为 /write/tasks/* 的 SSE 流）。
+    数据来自 write store（/write/tasks/* 接口与 SSE 流）。
   -->
   <div class="workspace-progress">
     <span>编写进度</span>
@@ -10,6 +10,22 @@
     </div>
     <b>{{ writeStore.completionPercent }}%</b>
     <span class="progress-meta">已生成 {{ writeStore.doneSectionCount }}/{{ writeStore.outline.length }} 章 · 响应率 {{ writeStore.responseRate }}%</span>
+    <span class="progress-actions">
+      <button
+        type="button"
+        :disabled="!writeStore.currentTaskId || exporting"
+        @click="handleExport('docx')"
+      >
+        导出 Word
+      </button>
+      <button
+        type="button"
+        :disabled="!writeStore.currentTaskId || exporting"
+        @click="handleExport('pdf')"
+      >
+        导出 PDF
+      </button>
+    </span>
   </div>
 
   <div class="write-grid">
@@ -50,6 +66,19 @@ import { formatTimeLabel } from '@/utils/format'
 const writeStore = useWriteStore()
 const content = ref(writeStore.activeSection?.contentMd ?? '')
 
+// 导出进行中标记：防止重复点击（导出为同步生成 + 落桶，需等待）。
+const exporting = ref(false)
+
+async function handleExport(format: 'docx' | 'pdf'): Promise<void> {
+  if (exporting.value) return
+  exporting.value = true
+  try {
+    await writeStore.exportDraft(format)
+  } finally {
+    exporting.value = false
+  }
+}
+
 const activeTitle = computed(
   () => writeStore.outline.find((node) => node.sectionId === writeStore.activeSectionId)?.title ?? '章节正文',
 )
@@ -73,3 +102,28 @@ function handleSave(value: string): void {
   void writeStore.saveSection(writeStore.activeSectionId, value)
 }
 </script>
+
+<style scoped>
+.progress-actions {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 8px;
+}
+.progress-actions button {
+  padding: 4px 10px;
+  font-size: 12px;
+  border: 1px solid var(--el-border-color, #dcdfe6);
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+}
+.progress-actions button:hover:not(:disabled) {
+  border-color: var(--el-color-primary, #409eff);
+  color: var(--el-color-primary, #409eff);
+}
+.progress-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+</style>

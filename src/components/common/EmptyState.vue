@@ -18,7 +18,11 @@ withDefaults(
     icon?: Component
   }>(),
   {
-    icon: Inbox,
+    // 注意：lucide 图标本身是函数式组件（函数）。若直接写 `icon: Inbox`，
+    // Vue 会把「函数型默认值」当作工厂函数调用，触发
+    // "Cannot destructure property 'slots' of 'undefined'"。
+    // 必须用工厂写法返回组件本身。
+    icon: () => Inbox,
   },
 )
 </script>

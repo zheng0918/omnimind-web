@@ -3,8 +3,6 @@ import { defineStore } from 'pinia'
 import { fetchCurrentUser, login as loginApi } from '@/api/auth'
 import type { LoginParams, Role, Scope, UserProfile } from '@/types/api'
 
-import { seedUser } from './pocSeed'
-
 /**
  * 用户态 store（REQ-AUTH）：登录态、角色、视角与权限。
  * token 与 profile 持久化到 localStorage 以支持刷新保活；登出时清除。
@@ -41,8 +39,8 @@ export const useUserStore = defineStore('user', {
   }),
   getters: {
     isAuthenticated: (state) => Boolean(state.token),
-    realName: (state) => state.profile?.realName ?? seedUser.realName,
-    allowedScopes: (state) => state.profile?.allowedScopes ?? seedUser.allowedScopes,
+    realName: (state) => state.profile?.realName ?? '',
+    allowedScopes: (state) => state.profile?.allowedScopes ?? [],
   },
   actions: {
     persist(token: string, profile: UserProfile): void {
@@ -57,13 +55,17 @@ export const useUserStore = defineStore('user', {
       this.loading = true
       try {
         const result = await loginApi(params)
-        const profile: UserProfile = {
-          ...result.user,
-          accessibleKbIds: [],
-          allowedScopes: ['bid'],
+        // 仅先存 token 使后续请求带鉴权；权限字段（accessibleKbIds/allowedScopes）
+        // 不在 login 响应内，统一以 /auth/me 为准（契约 §1.1，WEB-09）。
+        this.token = result.token
+        localStorage.setItem(TOKEN_KEY, result.token)
+        try {
+          await this.fetchProfile()
+        } catch (error) {
+          // 拉取权限失败则不维持半登录态，清空后由调用方提示重试。
+          this.logout()
+          throw error
         }
-        this.persist(result.token, profile)
-        await this.fetchProfile()
       } finally {
         this.loading = false
       }

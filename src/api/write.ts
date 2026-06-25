@@ -80,3 +80,14 @@ export function submitWriteToReview(
     data: {},
   })
 }
+
+export function exportWriteTask(
+  taskId: string,
+  format: 'docx' | 'pdf',
+): Promise<{ downloadUrl: string; async: boolean }> {
+  return request<{ downloadUrl: string; async: boolean }>({
+    method: 'POST',
+    url: API_PATHS.write.export(taskId),
+    data: { format },
+  })
+}

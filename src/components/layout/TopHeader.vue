@@ -9,15 +9,16 @@
     </div>
 
     <div class="header-right">
+      <button class="scope-switch" type="button" @click="cycleScope">
+        <Eye />
+        <span>{{ scopeLabel }}</span>
+        <ChevronDown class="caret" />
+      </button>
+
       <label class="search-box">
         <Search />
-        <input aria-label="全局搜索" placeholder="全局搜索 / Ctrl K" type="search" />
+        <input aria-label="全局搜索" placeholder="全局搜索（文档 / 客户 / 标书 / 预警 ⌘K）" type="search" />
       </label>
-
-      <button class="scope-switch" type="button" @click="cycleScope">
-        <SlidersHorizontal />
-        <span>{{ scopeLabel }}</span>
-      </button>
 
       <button class="icon-btn" type="button" aria-label="帮助">
         <CircleHelp />
@@ -35,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { Bell, CircleHelp, Search, SlidersHorizontal } from 'lucide-vue-next'
+import { Bell, ChevronDown, CircleHelp, Eye, Search } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 

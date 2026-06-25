@@ -6,7 +6,7 @@ import { request } from './http'
 export function listTasks(params: {
   type?: string
   status?: string
-  page: number
+  pageNum: number
   pageSize: number
 }): Promise<PageResult<TaskListItem>> {
   return request<PageResult<TaskListItem>>({

@@ -83,13 +83,14 @@
             <th>页数</th>
             <th>大小</th>
             <th>更新时间</th>
+            <th>操作</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="doc in filteredDocuments" :key="doc.documentId">
             <td>
               <span class="doc-name">
-                <span class="doc-icon">{{ iconText(doc.name) }}</span>
+                <span class="doc-icon" :class="extClass(doc.name)">{{ iconText(doc.name) }}</span>
                 <span>
                   <b>{{ doc.name }}</b>
                   <small>{{ doc.documentId }}</small>
@@ -100,6 +101,18 @@
             <td>{{ doc.pageCount ?? '-' }}</td>
             <td>{{ formatBytes(doc.sizeBytes) }}</td>
             <td>{{ formatTimeLabel(doc.updatedAt) }}</td>
+            <td>
+              <button
+                v-if="doc.parseStatus === 'FAILED'"
+                class="btn sm"
+                type="button"
+                :disabled="isViewer"
+                @click="onReparse(doc.documentId)"
+              >
+                <RotateCcw />
+                重新解析
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -113,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, Plus, Search } from 'lucide-vue-next'
+import { ArrowLeft, Plus, RotateCcw, Search } from 'lucide-vue-next'
 import { ElMessage } from 'element-plus'
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
@@ -146,14 +159,18 @@ const filteredDocuments = computed(() => {
 })
 
 function iconText(name: string): string {
-  return (name.split('.').pop()?.toUpperCase() ?? 'DOC').slice(0, 3)
+  return (name.split('.').pop()?.toUpperCase() ?? 'DOC').slice(0, 4)
+}
+
+function extClass(name: string): string {
+  return (name.split('.').pop() ?? '').toLowerCase()
 }
 
 function onAddMember(): void {
   ElMessage.info('成员邀请（一期占位入口）')
 }
 
-// 上传成功后即时把新文档插入列表头部，避免等待轮询刷新。
+// 上传成功后即时把新文档插入列表头部，并启动解析状态轮询直至终态（WEB-04）。
 function handleUploaded(result: UploadDocumentResult): void {
   kbStore.documents.unshift({
     documentId: result.documentId,
@@ -163,6 +180,12 @@ function handleUploaded(result: UploadDocumentResult): void {
     parseStatus: result.parseStatus,
     updatedAt: new Date().toISOString(),
   })
+  kbStore.pollParseStatus(result.documentId)
+}
+
+async function onReparse(documentId: string): Promise<void> {
+  const ok = await kbStore.reparse(documentId)
+  if (!ok) ElMessage.error('重新解析失败，请稍后重试')
 }
 
 onMounted(() => {

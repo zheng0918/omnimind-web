@@ -25,14 +25,14 @@ export interface ApiError {
 }
 
 export interface PageQuery {
-  page: number
+  pageNum: number
   pageSize: number
 }
 
 export interface PageResult<T> {
   list: T[]
   total: number
-  page: number
+  pageNum: number
   pageSize: number
 }
 
@@ -154,6 +154,8 @@ export interface ChatMessage {
   createdAt: string
   feedback?: 'up' | 'down' | null
   streaming?: boolean
+  /** 流式失败时的错误文案（如「未检索到相关资料」），用于在气泡内提示而非留空。 */
+  error?: string
 }
 
 export interface ChatSession {
@@ -181,6 +183,8 @@ export interface ReviewTask {
     medium: number
     pass: number
   }
+  /** 被审文档 docId，供原文预览与风险定位（后端 getTask 回传，旧任务可能缺省）。 */
+  targetDocId?: string
 }
 
 export interface ReviewRisk {
@@ -194,6 +198,8 @@ export interface ReviewRisk {
   sourcePage: number
   sourceParaId: string
   confidence: number
+  /** 归一化版面包围盒 [x0,y0,x1,y1]（0~1，左上原点），用于在原文 PDF 上画精确高亮框；可空。 */
+  bbox: number[] | null
   disposition: RiskDisposition
   relatedCases: string[]
 }

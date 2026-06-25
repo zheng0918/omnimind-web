@@ -1,5 +1,5 @@
 import { API_PATHS } from '@/constants/api'
-import type { RiskDisposition, RiskPollResult, Strictness } from '@/types/api'
+import type { ReviewTask, RiskDisposition, RiskPollResult, Strictness } from '@/types/api'
 
 import { request } from './http'
 
@@ -23,8 +23,9 @@ export function createReviewTask(
   })
 }
 
-export function getReviewTask(taskId: string): Promise<RiskPollResult> {
-  return request<RiskPollResult>({
+// 契约 §1.5：该路径返回「任务状态摘要」，风险条目走 pollRisks(/risks)。
+export function getReviewTask(taskId: string): Promise<ReviewTask> {
+  return request<ReviewTask>({
     method: 'GET',
     url: API_PATHS.review.task(taskId),
   })

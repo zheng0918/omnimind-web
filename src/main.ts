@@ -1,4 +1,5 @@
 import 'element-plus/dist/index.css'
+import 'pdfjs-dist/web/pdf_viewer.css'
 import './styles/tokens.css'
 import './styles/element-overrides.scss'
 import './styles/global.scss'
